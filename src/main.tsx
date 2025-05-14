@@ -1,14 +1,16 @@
-import { StrictMode } from 'react'
-import ReactDOM from 'react-dom/client'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { RouterProvider, createRouter } from '@tanstack/react-router'
+import React from 'react'
+import ReactDOM from 'react-dom/client'
+import { ThirdwebProvider } from 'thirdweb/react'
 
 import * as TanStackQueryProvider from './integrations/tanstack-query/root-provider.tsx'
 
 // Import the generated route tree
 import { routeTree } from './routeTree.gen'
 
-import './styles.css'
 import reportWebVitals from './reportWebVitals.ts'
+import './styles.css'
 
 // Create a new router instance
 const router = createRouter({
@@ -29,16 +31,22 @@ declare module '@tanstack/react-router' {
   }
 }
 
+const queryClient = new QueryClient()
+
 // Render the app
 const rootElement = document.getElementById('app')
 if (rootElement && !rootElement.innerHTML) {
   const root = ReactDOM.createRoot(rootElement)
   root.render(
-    <StrictMode>
-      <TanStackQueryProvider.Provider>
-        <RouterProvider router={router} />
-      </TanStackQueryProvider.Provider>
-    </StrictMode>,
+    <React.StrictMode>
+      <QueryClientProvider client={queryClient}>
+        <ThirdwebProvider>
+          <TanStackQueryProvider.Provider>
+            <RouterProvider router={router} />
+          </TanStackQueryProvider.Provider>
+        </ThirdwebProvider>
+      </QueryClientProvider>
+    </React.StrictMode>,
   )
 }
 

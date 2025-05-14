@@ -11,12 +11,20 @@
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
+import { Route as ThirdwebTestImport } from './routes/thirdweb-test'
 import { Route as IndexImport } from './routes/index'
 import { Route as DemoTanstackQueryImport } from './routes/demo.tanstack-query'
+import { Route as ApiNebulaImport } from './routes/api/nebula'
 import { Route as DemoFormSimpleImport } from './routes/demo.form.simple'
 import { Route as DemoFormAddressImport } from './routes/demo.form.address'
 
 // Create/Update Routes
+
+const ThirdwebTestRoute = ThirdwebTestImport.update({
+  id: '/thirdweb-test',
+  path: '/thirdweb-test',
+  getParentRoute: () => rootRoute,
+} as any)
 
 const IndexRoute = IndexImport.update({
   id: '/',
@@ -27,6 +35,12 @@ const IndexRoute = IndexImport.update({
 const DemoTanstackQueryRoute = DemoTanstackQueryImport.update({
   id: '/demo/tanstack-query',
   path: '/demo/tanstack-query',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const ApiNebulaRoute = ApiNebulaImport.update({
+  id: '/api/nebula',
+  path: '/api/nebula',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -51,6 +65,20 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexImport
+      parentRoute: typeof rootRoute
+    }
+    '/thirdweb-test': {
+      id: '/thirdweb-test'
+      path: '/thirdweb-test'
+      fullPath: '/thirdweb-test'
+      preLoaderRoute: typeof ThirdwebTestImport
+      parentRoute: typeof rootRoute
+    }
+    '/api/nebula': {
+      id: '/api/nebula'
+      path: '/api/nebula'
+      fullPath: '/api/nebula'
+      preLoaderRoute: typeof ApiNebulaImport
       parentRoute: typeof rootRoute
     }
     '/demo/tanstack-query': {
@@ -81,6 +109,8 @@ declare module '@tanstack/react-router' {
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/thirdweb-test': typeof ThirdwebTestRoute
+  '/api/nebula': typeof ApiNebulaRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/demo/form/address': typeof DemoFormAddressRoute
   '/demo/form/simple': typeof DemoFormSimpleRoute
@@ -88,6 +118,8 @@ export interface FileRoutesByFullPath {
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/thirdweb-test': typeof ThirdwebTestRoute
+  '/api/nebula': typeof ApiNebulaRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/demo/form/address': typeof DemoFormAddressRoute
   '/demo/form/simple': typeof DemoFormSimpleRoute
@@ -96,6 +128,8 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
+  '/thirdweb-test': typeof ThirdwebTestRoute
+  '/api/nebula': typeof ApiNebulaRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/demo/form/address': typeof DemoFormAddressRoute
   '/demo/form/simple': typeof DemoFormSimpleRoute
@@ -105,14 +139,24 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/thirdweb-test'
+    | '/api/nebula'
     | '/demo/tanstack-query'
     | '/demo/form/address'
     | '/demo/form/simple'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/demo/tanstack-query' | '/demo/form/address' | '/demo/form/simple'
+  to:
+    | '/'
+    | '/thirdweb-test'
+    | '/api/nebula'
+    | '/demo/tanstack-query'
+    | '/demo/form/address'
+    | '/demo/form/simple'
   id:
     | '__root__'
     | '/'
+    | '/thirdweb-test'
+    | '/api/nebula'
     | '/demo/tanstack-query'
     | '/demo/form/address'
     | '/demo/form/simple'
@@ -121,6 +165,8 @@ export interface FileRouteTypes {
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ThirdwebTestRoute: typeof ThirdwebTestRoute
+  ApiNebulaRoute: typeof ApiNebulaRoute
   DemoTanstackQueryRoute: typeof DemoTanstackQueryRoute
   DemoFormAddressRoute: typeof DemoFormAddressRoute
   DemoFormSimpleRoute: typeof DemoFormSimpleRoute
@@ -128,6 +174,8 @@ export interface RootRouteChildren {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ThirdwebTestRoute: ThirdwebTestRoute,
+  ApiNebulaRoute: ApiNebulaRoute,
   DemoTanstackQueryRoute: DemoTanstackQueryRoute,
   DemoFormAddressRoute: DemoFormAddressRoute,
   DemoFormSimpleRoute: DemoFormSimpleRoute,
@@ -144,6 +192,8 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
+        "/thirdweb-test",
+        "/api/nebula",
         "/demo/tanstack-query",
         "/demo/form/address",
         "/demo/form/simple"
@@ -151,6 +201,12 @@ export const routeTree = rootRoute
     },
     "/": {
       "filePath": "index.tsx"
+    },
+    "/thirdweb-test": {
+      "filePath": "thirdweb-test.tsx"
+    },
+    "/api/nebula": {
+      "filePath": "api/nebula.ts"
     },
     "/demo/tanstack-query": {
       "filePath": "demo.tanstack-query.tsx"
