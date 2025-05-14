@@ -1,30 +1,23 @@
-# Dependencies
-node_modules
-.pnp
-.pnp.js
-
-# Testing
-coverage
-.nyc_output
-
-# Production
-dist
-dist-ssr
-build
-
-# Environment
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-*.local
-
-# Debug
+# Logs
+logs
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-.pnpm-debug.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Dependencies
+node_modules
+.DS_Store
+.pnp
+.pnp.js
+
+# Build
+dist
+dist-ssr
+*.local
+.env
 
 # Editor directories and files
 .vscode/*
@@ -37,9 +30,15 @@ yarn-error.log*
 *.sln
 *.sw?
 
-# Misc
-.cache
-.temp
-.tmp
-
+# Environment
 .env
+.env.*
+!.env.example
+
+.mastra
+.output
+.vinxi
+.netlify
+.vercel
+
+.trigger
