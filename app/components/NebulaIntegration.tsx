@@ -2,6 +2,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useState } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import type { PreparedTransaction } from "thirdweb";
 import { Nebula } from "thirdweb/ai";
 import {
@@ -103,11 +105,11 @@ export function NebulaIntegration() {
   return (
     <div className="flex flex-col h-[500px] max-w-2xl mx-auto bg-background border rounded-lg shadow-lg p-4 space-y-4">
       <h2 className="text-xl font-semibold text-center">Chat with Nebula AI</h2>
-      <ScrollArea className="flex-grow border rounded-md p-3 space-y-2 bg-muted/50">
+      <ScrollArea className="flex-grow border rounded-md p-3 space-y-2 bg-muted/50 prose dark:prose-invert max-w-none">
         {chatMessages.map((msg, index) => (
           <div key={index} className={`flex flex-col mb-3 ${msg.role === "user" ? "items-end" : "items-start"}`}>
             <div className={`p-3 rounded-lg max-w-[80%] break-words ${msg.role === "user" ? "bg-primary text-primary-foreground" : "bg-muted"}`}>
-              <p>{msg.content}</p>
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
               {msg.transactions && msg.transactions.length > 0 && msg.role === "assistant" && (
                 <div className="mt-2 pt-2 border-t border-muted-foreground/20">
                   <p className="text-sm font-medium mb-1">Proposed Transaction(s):</p>

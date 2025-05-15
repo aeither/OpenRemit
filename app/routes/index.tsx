@@ -1,3 +1,4 @@
+import AppLayout from "@/components/layout/AppLayout";
 import { createFileRoute } from "@tanstack/react-router";
 import { useActiveAccount } from "thirdweb/react"; // For checking if wallet is connected
 import { ConnectWalletButton } from "../components/ConnectWalletButton"; // Adjusted path
@@ -13,6 +14,8 @@ function Index() {
   const activeAccount = useActiveAccount();
 
   return (
+        <AppLayout>
+
     <div className="container mx-auto p-4 md:p-8 space-y-8">
       <header className="text-center">
         <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-primary">
@@ -61,5 +64,6 @@ function Index() {
         </Button>
       </div> */}
     </div>
+        </AppLayout>
   );
 }
