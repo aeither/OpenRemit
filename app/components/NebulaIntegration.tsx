@@ -1,6 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useTRPC } from "@/trpc/react"; // Corrected tRPC import
+import { useMutation } from "@tanstack/react-query"; // Import useMutation
 import { X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
@@ -8,9 +10,9 @@ import remarkGfm from "remark-gfm";
 import type { PreparedTransaction } from "thirdweb";
 import { Nebula } from "thirdweb/ai";
 import {
-    useActiveAccount,
-    useActiveWalletChain,
-    useSendTransaction,
+  useActiveAccount,
+  useActiveWalletChain,
+  useSendTransaction,
 } from "thirdweb/react";
 import { thirdwebClient } from "../lib/thirdweb";
 
@@ -28,7 +30,11 @@ interface NebulaIntegrationProps {
 export function NebulaIntegration({ onClose }: NebulaIntegrationProps) {
   const connectedAccount = useActiveAccount();
   const activeChain = useActiveWalletChain();
-  const { mutateAsync: sendTransaction,isPending: isTxPending } = useSendTransaction();
+  const { mutateAsync: sendTransaction, isPending: isTxPending } = useSendTransaction();
+  const trpc = useTRPC(); // Get tRPC client instance via hook
+
+  // tRPC mutation for parsing intent - Corrected usage
+  const parseIntentMutation = useMutation(trpc.ai.parseUserIntentForNebula.mutationOptions());
 
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [userInput, setUserInput] = useState("");
@@ -57,17 +63,49 @@ export function NebulaIntegration({ onClose }: NebulaIntegrationProps) {
       return;
     }
 
-    const newUserMessage: ChatMessage = { role: "user", content: userInput };
+    const currentMessageContent = userInput;
+    const newUserMessage: ChatMessage = { role: "user", content: currentMessageContent };
     setChatMessages((prev) => [...prev, newUserMessage]);
     setUserInput("");
     setIsLoading(true);
     setError(null);
 
     try {
+      // Step 1: Parse user intent and potentially resolve contact name
+      // const parsedResult = await parseIntentMutation.mutateAsync({
+      //   userAddress: connectedAccount.address,
+      //   userMessage: currentMessageContent,
+      // });
+
+      // let messageForNebula = currentMessageContent;
+      // let preNebulaError: string | null = null;
+
+      // if (parsedResult.success) {
+      //   messageForNebula = parsedResult.messageForNebula;
+      //   if (parsedResult.parsedIntent?.isTransaction && parsedResult.contactFound === false && parsedResult.error) {
+      //     // Contact not found, display this error as an assistant message and stop
+      //     preNebulaError = parsedResult.error;
+      //   }
+      // } else if (parsedResult.error) {
+      //   // Some other parsing error or explicit "contact not found" error from AI
+      //   preNebulaError = parsedResult.error;
+      // }
+      // // If there was an error during parsing (e.g. contact not found), show it and stop
+      // if (preNebulaError) {
+      //   setChatMessages((prev) => [
+      //     ...prev,
+      //     { role: "assistant", content: `Error: ${preNebulaError}` },
+      //   ]);
+      //   setIsLoading(false);
+      //   return;
+      // }
+
+      // Step 2: Send to Nebula.chat with potentially modified message
       const nebulaResponse = await Nebula.chat({
         client: thirdwebClient,
         account: connectedAccount,
-        message: newUserMessage.content,
+        message: newUserMessage.content, // Use the (potentially modified) message
+        // message: messageForNebula, // Use the (potentially modified) message
         contextFilter: {
           chains: [activeChain],
           walletAddresses: [connectedAccount.address],
@@ -81,9 +119,10 @@ export function NebulaIntegration({ onClose }: NebulaIntegrationProps) {
       };
       setChatMessages((prev) => [...prev, assistantMessage]);
 
-    } catch (err) {
-      console.error("Nebula chat error:", err);
-      const errorMessage = err instanceof Error ? err.message : "An unexpected error occurred with Nebula.";
+    } catch (err: any) { // Catch errors from both parsing and Nebula
+      console.error("Error in chat flow:", err);
+      // Check if it's a tRPC error from parseIntentMutation to provide a more specific message
+      const errorMessage = err.data?.message || err.message || "An unexpected error occurred.";
       setError(errorMessage);
       setChatMessages((prev) => [
         ...prev,
