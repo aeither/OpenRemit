@@ -1,69 +1,95 @@
-import AppLayout from "@/components/layout/AppLayout";
-import { createFileRoute } from "@tanstack/react-router";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { CreditCard, Plus } from "lucide-react";
 import { useActiveAccount } from "thirdweb/react"; // For checking if wallet is connected
-import { ConnectWalletButton } from "../components/ConnectWalletButton"; // Adjusted path
-import { NebulaIntegration } from "../components/NebulaIntegration"; // Adjusted path
+import { AIAssistantButton } from "../components/AIAssistantButton";
+import { MobileNav } from "../components/MobileNav";
+import { QuickTransfer } from "../components/QuickTransfer";
+import { RecentTransactions } from "../components/RecentTransactions";
+import { RecurringPayments } from "../components/RecurringPayments";
+import { SmartSuggestions } from "../components/SmartSuggestions";
 // import { useAuth } from "../hooks/useAuth"; // Removed as not directly relevant and causing error
 
 export const Route = createFileRoute("/")({
-  component: Index,
+  component: HomePage,
 });
 
-function Index() {
+function HomePage() {
   // const auth = useAuth(); // Keep if used for other purposes
   const activeAccount = useActiveAccount();
 
   return (
-        <AppLayout>
+    <div className="flex min-h-screen flex-col bg-background">
+      {/* Header is part of the __root.tsx layout and will include the main ConnectButton */}
+      {/* The header content provided in the mock (FamilyPay, Bell, Settings) 
+          would typically be part of the existing Header.tsx or a new sub-header if desired.
+          For now, this HomePage component focuses on the main content area below the global header.
+      */}
 
-    <div className="container mx-auto p-4 md:p-8 space-y-8">
-      <header className="text-center">
-        <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-primary">
-          Welcome to OpenRemit with Nebula AI
-        </h1>
-        <p className="mt-3 text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
-          Seamlessly manage your finances and interact with blockchain using natural language.
-          Connect your wallet and start chatting with Nebula AI below.
-        </p>
-      </header>
+      {/* Main Content */}
+      <main className="flex-1 p-4 pb-20 sm:pb-4"> {/* Added padding-bottom for MobileNav overlap */}
+        {/* Balance Card */}
+        <Card className="mb-6 bg-primary text-primary-foreground shadow-lg">
+          <CardContent className="p-6">
+            <div className="mb-2 text-sm font-medium">Available Balance</div>
+            {/* TODO: Replace with actual balance data from a hook or API */}
+            <div className="mb-4 text-3xl font-bold">$1,250.00</div> 
+            <div className="flex gap-2">
+              <Button size="sm" variant="secondary" className="flex-1">
+                <Plus className="mr-1 h-4 w-4" />
+                Add Money
+              </Button>
+              <Button size="sm" variant="secondary" className="flex-1">
+                <CreditCard className="mr-1 h-4 w-4" />
+                Send Money
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
 
-      <div className="flex justify-center my-6">
-        <ConnectWalletButton />
-      </div>
+        {/* Smart Suggestions */}
+        <section className="mb-6">
+          <h2 className="mb-3 text-lg font-semibold text-foreground">Smart Suggestions</h2>
+          <SmartSuggestions />
+        </section>
 
-      {activeAccount ? (
-        <NebulaIntegration />
-      ) : (
-        <div className="text-center p-6 border rounded-lg bg-card text-card-foreground">
-          <p className="text-lg font-medium">
-            Please connect your wallet to start interacting with Nebula AI.
-          </p>
-        </div>
-      )}
+        {/* Quick Transfer Section */}
+        <section className="mb-6">
+          <h2 className="mb-3 text-lg font-semibold text-foreground">Quick Transfer</h2>
+          <QuickTransfer />
+        </section>
 
-      {/* Example existing link, commented out to resolve linter error */}
-      {/* <div className="text-center mt-12">
-        <Button asChild variant="outline">
-          <Link to="/about" className="text-lg">
-            Learn More About Us
-          </Link>
-        </Button>
-      </div> */}
+        {/* Recent Transactions */}
+        <section className="mb-6">
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-foreground">Recent Transactions</h2>
+            {/* TODO: Update this link if /transactions route is created */}
+            <Link to="/transactions" className="text-sm text-primary hover:underline">
+              View All
+            </Link>
+          </div>
+          <RecentTransactions />
+        </section>
 
-      {/* Removed auth specific content for clarity on Nebula integration */}
-      {/* <div className="flex flex-col items-center gap-4">
-        {auth.user ? (
-          <p>
-            Logged in as <strong>{auth.user.email}</strong>
-          </p>
-        ) : null}
-        <Button asChild>
-          <Link to={auth.user ? "/app" : "/login"}>
-            {auth.user ? "Go to App" : "Login"}
-          </Link>
-        </Button>
-      </div> */}
+        {/* Recurring Payments */}
+        <section>
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-foreground">Recurring Payments</h2>
+            {/* TODO: Update this link if /recurring route is created */}
+            <Link to="/recurring" className="text-sm text-primary hover:underline">
+              Manage
+            </Link>
+          </div>
+          <RecurringPayments />
+        </section>
+      </main>
+
+      {/* Mobile Navigation */}
+      <MobileNav />
+
+      {/* AI Assistant Button - Renders NebulaIntegration when active */}
+      <AIAssistantButton />
     </div>
-        </AppLayout>
   );
 }

@@ -1,7 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useState } from "react";
+import { X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import type { PreparedTransaction } from "thirdweb";
@@ -20,7 +21,11 @@ interface ChatMessage {
   txHash?: string;
 }
 
-export function NebulaIntegration() {
+interface NebulaIntegrationProps {
+  onClose: () => void;
+}
+
+export function NebulaIntegration({ onClose }: NebulaIntegrationProps) {
   const connectedAccount = useActiveAccount();
   const activeChain = useActiveWalletChain();
   const { mutateAsync: sendTransaction,isPending: isTxPending } = useSendTransaction();
@@ -29,6 +34,17 @@ export function NebulaIntegration() {
   const [userInput, setUserInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [chatMessages]);
+
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, []);
 
   const handleSendMessage = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -50,14 +66,12 @@ export function NebulaIntegration() {
     try {
       const nebulaResponse = await Nebula.chat({
         client: thirdwebClient,
-        account: connectedAccount, // Pass the connected account for context
+        account: connectedAccount,
         message: newUserMessage.content,
         contextFilter: {
-          chains: [activeChain], // Context for Nebula
+          chains: [activeChain],
           walletAddresses: [connectedAccount.address],
         },
-        // For multi-turn conversations, you can pass previous messages:
-        // messages: [...chatMessages, newUserMessage].map(m => ({ role: m.role, content: m.content })),
       });
 
       const assistantMessage: ChatMessage = {
@@ -103,12 +117,21 @@ export function NebulaIntegration() {
   };
 
   return (
-    <div className="flex flex-col h-[500px] max-w-2xl mx-auto bg-background border rounded-lg shadow-lg p-4 space-y-4">
-      <h2 className="text-xl font-semibold text-center">Chat with Nebula AI</h2>
-      <ScrollArea className="flex-grow border rounded-md p-3 space-y-2 bg-muted/50 prose dark:prose-invert max-w-none">
+    <div className="flex flex-col bg-card text-card-foreground rounded-lg shadow-xl w-full h-full max-h-[70vh] sm:max-h-[600px]">
+      <div className="flex items-center justify-between border-b p-4">
+        <div className="flex items-center">
+          <h3 className="font-semibold">Nebula AI Assistant</h3>
+        </div>
+        <Button variant="ghost" size="icon" onClick={onClose}>
+          <X className="h-5 w-5" />
+          <span className="sr-only">Close chat</span>
+        </Button>
+      </div>
+
+      <ScrollArea className="flex-grow p-4 space-y-2 bg-background/50 prose dark:prose-invert max-w-none">
         {chatMessages.map((msg, index) => (
           <div key={index} className={`flex flex-col mb-3 ${msg.role === "user" ? "items-end" : "items-start"}`}>
-            <div className={`p-3 rounded-lg max-w-[80%] break-words ${msg.role === "user" ? "bg-primary text-primary-foreground" : "bg-muted"}`}>
+            <div className={`p-3 rounded-lg max-w-[80%] break-words ${msg.role === "user" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
               <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
               {msg.transactions && msg.transactions.length > 0 && msg.role === "assistant" && (
                 <div className="mt-2 pt-2 border-t border-muted-foreground/20">
@@ -138,26 +161,31 @@ export function NebulaIntegration() {
         {isLoading && (chatMessages.length === 0 || chatMessages[chatMessages.length -1].role === 'user') && (
           <div className="flex flex-col items-start mb-3">
             <div className="p-3 rounded-lg bg-muted max-w-[80%]">
-              <p className="italic">Nebula is thinking...</p>
+              <p className="italic text-muted-foreground">Nebula is thinking...</p>
             </div>
           </div>
         )}
+        <div ref={messagesEndRef} />
       </ScrollArea>
-      <form onSubmit={handleSendMessage} className="flex items-center space-x-2">
-        <Input
-          type="text"
-          value={userInput}
-          onChange={(e) => setUserInput(e.target.value)}
-          placeholder={connectedAccount ? `Ask Nebula about ${activeChain?.name || "selected chain"}...` : "Connect wallet to chat..."}
-          disabled={!connectedAccount || isLoading}
-          className="flex-grow"
-        />
-        <Button type="submit" disabled={!connectedAccount || isLoading || !userInput.trim()}>
-          {isLoading ? "Sending..." : "Send"}
-        </Button>
-      </form>
-      {error && <p className="text-sm text-red-500 text-center">Error: {error}</p>}
-      {!connectedAccount && <p className="text-sm text-amber-500 text-center">Please connect your wallet to interact with Nebula.</p>}
+
+      <div className="border-t p-4">
+        <form onSubmit={handleSendMessage} className="flex items-center gap-2">
+          <Input
+            ref={inputRef}
+            type="text"
+            value={userInput}
+            onChange={(e) => setUserInput(e.target.value)}
+            placeholder={connectedAccount ? `Ask Nebula...` : "Connect wallet to chat..."}
+            disabled={!connectedAccount || isLoading}
+            className="flex-1"
+          />
+          <Button type="submit" disabled={!connectedAccount || isLoading || !userInput.trim()}>
+            {isLoading ? "Sending..." : "Send"}
+          </Button>
+        </form>
+        {error && <p className="text-xs text-red-500 text-center mt-2">Error: {error}</p>}
+        {!connectedAccount && !isLoading && <p className="text-xs text-amber-600 text-center mt-2">Please connect your wallet.</p>}
+      </div>
     </div>
   );
 } 
