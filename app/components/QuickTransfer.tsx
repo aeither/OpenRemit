@@ -12,7 +12,7 @@ import SisterAvatar from '../assets/sister.png';
 
 export function QuickTransfer() {
   const recipients = [
-    { id: 1, name: "Mom", image: MomAvatar }, 
+    { id: 1, name: "Mom", image: MomAvatar },
     { id: 2, name: "Dad", image: DadAvatar },
     { id: 3, name: "Grandpa", image: GrandpaAvatar },
     { id: 4, name: "Grandma", image: GrandmaAvatar },
