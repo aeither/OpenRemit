@@ -117,8 +117,8 @@ export function NebulaIntegration({ onClose }: NebulaIntegrationProps) {
   };
 
   return (
-    <div className="flex flex-col bg-card text-card-foreground rounded-lg shadow-xl w-full h-full max-h-[70vh] sm:max-h-[600px]">
-      <div className="flex items-center justify-between border-b p-4">
+    <div className="flex flex-col w-full h-full text-card-foreground">
+      <div className="flex items-center justify-between border-b p-4 flex-shrink-0">
         <div className="flex items-center">
           <h3 className="font-semibold">Nebula AI Assistant</h3>
         </div>
@@ -128,11 +128,13 @@ export function NebulaIntegration({ onClose }: NebulaIntegrationProps) {
         </Button>
       </div>
 
-      <ScrollArea className="flex-grow p-4 space-y-2 bg-background/50 prose dark:prose-invert max-w-none">
+      <ScrollArea className="flex-grow p-4 bg-background/50 min-h-0">
         {chatMessages.map((msg, index) => (
           <div key={index} className={`flex flex-col mb-3 ${msg.role === "user" ? "items-end" : "items-start"}`}>
-            <div className={`p-3 rounded-lg max-w-[80%] break-words ${msg.role === "user" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
+            <div className={`p-3 rounded-lg max-w-[80%] break-words shadow ${msg.role === "user" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
+              <div className="prose prose-sm dark:prose-invert max-w-none w-full break-words">
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
+              </div>
               {msg.transactions && msg.transactions.length > 0 && msg.role === "assistant" && (
                 <div className="mt-2 pt-2 border-t border-muted-foreground/20">
                   <p className="text-sm font-medium mb-1">Proposed Transaction(s):</p>
@@ -168,7 +170,7 @@ export function NebulaIntegration({ onClose }: NebulaIntegrationProps) {
         <div ref={messagesEndRef} />
       </ScrollArea>
 
-      <div className="border-t p-4">
+      <div className="border-t p-4 flex-shrink-0">
         <form onSubmit={handleSendMessage} className="flex items-center gap-2">
           <Input
             ref={inputRef}

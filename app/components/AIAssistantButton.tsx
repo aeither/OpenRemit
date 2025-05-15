@@ -39,7 +39,7 @@ export function AIAssistantButton() {
       {isOpen && activeAccount && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-4 sm:items-center backdrop-blur-sm">
           {/* NebulaIntegration is now the content of the modal-like card */}
-          <div className="w-full max-w-md bg-card rounded-lg shadow-xl overflow-hidden">
+          <div className="w-full max-w-md bg-card rounded-lg shadow-xl overflow-hidden flex flex-col h-[70vh] sm:h-[600px] max-h-[70vh] sm:max-h-[600px]">
             <NebulaIntegration onClose={() => setIsOpen(false)} />
           </div>
         </div>
