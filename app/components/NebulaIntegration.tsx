@@ -132,7 +132,7 @@ export function NebulaIntegration({ onClose }: NebulaIntegrationProps) {
         {chatMessages.map((msg, index) => (
           <div key={index} className={`flex flex-col mb-3 ${msg.role === "user" ? "items-end" : "items-start"}`}>
             <div className={`p-3 rounded-lg max-w-[80%] break-words shadow ${msg.role === "user" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
-              <div className="prose prose-sm dark:prose-invert max-w-none w-full break-words">
+              <div className="prose prose-sm dark:prose-invert max-w-none w-full break-all">
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
               </div>
               {msg.transactions && msg.transactions.length > 0 && msg.role === "assistant" && (
