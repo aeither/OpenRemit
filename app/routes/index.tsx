@@ -64,7 +64,6 @@ function HomePage() {
         <section className="mb-6">
           <div className="mb-3 flex items-center justify-between">
             <h2 className="text-lg font-semibold text-foreground">Recent Transactions</h2>
-            {/* TODO: Update this link if /transactions route is created */}
             <Link to="/transactions" className="text-sm text-primary hover:underline">
               View All
             </Link>
