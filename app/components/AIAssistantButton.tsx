@@ -45,7 +45,7 @@ export function AIAssistantButton() {
         </div>
       )}
 
-      <div className="fixed bottom-6 right-4 z-40 flex flex-col items-end space-y-3 sm:bottom-8 sm:right-8">
+      <div className="fixed bottom-10 right-4 z-40 flex flex-col items-end space-y-3 sm:bottom-12 sm:right-8">
         {isListening && (
           <div className="mb-2 rounded-full bg-primary p-3 text-primary-foreground shadow-lg">
             <div className="flex items-center gap-2">
