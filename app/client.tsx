@@ -5,4 +5,7 @@ import { createRouter } from './router';
 
 const router = createRouter();
 
-hydrateRoot(document, <StartClient router={router} />);
+hydrateRoot(
+  document, // Or document.getElementById('root') if that's your convention
+  <StartClient router={router} />
+);

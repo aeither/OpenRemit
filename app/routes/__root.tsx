@@ -2,18 +2,19 @@ import appCss from "@/app.css?url";
 import { Header } from "@/components/Header";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
-import type { QueryClient } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
 	createRootRouteWithContext,
 	HeadContent,
 	Outlet,
 	Scripts,
+	useRouteContext,
 } from "@tanstack/react-router";
 import type { TRPCOptionsProxy } from "@trpc/tanstack-react-query";
 import type * as React from "react";
+import { ThirdwebProvider } from "thirdweb/react";
 import { DefaultCatchBoundary } from "../components/DefaultCatchBoundary";
 import { NotFound } from "../components/NotFound";
-import { ThirdwebRootProvider } from "../providers/thirdweb";
 import type { TRPCRouter } from "../trpc/router";
 
 // Prevent theme flash script
@@ -36,10 +37,13 @@ const themeScript = `
   }
 `;
 
-export const Route = createRootRouteWithContext<{
+interface AppContext {
 	queryClient: QueryClient;
 	trpc: TRPCOptionsProxy<TRPCRouter>;
-}>()({
+	// Add other context types if any
+}
+
+export const Route = createRootRouteWithContext<AppContext>()({
 	head: () => ({
 		meta: [
 			{ charSet: "utf-8" },
@@ -56,12 +60,23 @@ export const Route = createRootRouteWithContext<{
 		);
 	},
 	notFoundComponent: () => <NotFound />,
-	component: () => (
-		<RootDocument>
-			<Outlet />
-		</RootDocument>
-	),
+	component: RootComponent,
 });
+
+function RootComponent() {
+	// Access queryClient from the router context
+	const { queryClient } = useRouteContext({ from: Route.id }) as AppContext;
+
+	return (
+		<QueryClientProvider client={queryClient}>
+			<ThirdwebProvider>
+				<RootDocument>
+					<Outlet />
+				</RootDocument>
+			</ThirdwebProvider>
+		</QueryClientProvider>
+	);
+}
 
 function RootDocument(props: Readonly<{ children: React.ReactNode }>) {
 	return (
@@ -72,19 +87,11 @@ function RootDocument(props: Readonly<{ children: React.ReactNode }>) {
 			</head>
 			<body className="flex flex-col min-h-screen">
 				<ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-				<ThirdwebRootProvider>
 					<Header />
 					<div className="pt-16">
 						{props.children}
 					</div>
-					{/* {process.env.NODE_ENV === 'development' && (
-						<>
-							<TanStackRouterDevtools position="bottom-right" />
-							<ReactQueryDevtools buttonPosition="bottom-left" />
-						</>
-					)} */}
 					<Toaster />
-				</ThirdwebRootProvider>
 				</ThemeProvider>
 				<Scripts />
 			</body>

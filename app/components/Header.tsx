@@ -4,7 +4,7 @@ import { Link } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { ConnectButton, useActiveAccount } from 'thirdweb/react';
-import { mantle, thirdwebClient } from '../providers/thirdweb';
+import { mantle, thirdwebClient } from '../lib/thirdweb';
 
 export function Header() {
   const account = useActiveAccount();
