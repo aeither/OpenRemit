@@ -2,7 +2,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { CreditCard, Plus } from "lucide-react";
+import { useState } from "react";
 import { useActiveAccount } from "thirdweb/react"; // For checking if wallet is connected
+import { AddContactModal } from "../components/AddContactModal";
 import { AIAssistantButton } from "../components/AIAssistantButton";
 import { MobileNav } from "../components/MobileNav";
 import { QuickTransfer } from "../components/QuickTransfer";
@@ -15,9 +17,36 @@ export const Route = createFileRoute("/")({
   component: HomePage,
 });
 
+interface Contact {
+  name: string;
+  address: string;
+  image: string;
+}
+
 function HomePage() {
   // const auth = useAuth(); // Keep if used for other purposes
   const activeAccount = useActiveAccount();
+  
+  // State for managing contacts
+  const [contacts, setContacts] = useState<Contact[]>([
+    // Some default contacts for demo purposes
+    {
+      name: "Mom",
+      address: "0x1234567890123456789012345678901234567890",
+      image: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face"
+    },
+    {
+      name: "Dad",
+      address: "0x0987654321098765432109876543210987654321",
+      image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face"
+    }
+  ]);
+
+  const handleAddContact = (newContact: Contact) => {
+    setContacts(prev => [...prev, newContact]);
+    // TODO: In a real app, you'd also save this to a database or local storage
+    console.log("Added new contact:", newContact);
+  };
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -56,8 +85,19 @@ function HomePage() {
 
         {/* Quick Transfer Section */}
         <section className="mb-6">
-          <h2 className="mb-3 text-lg font-semibold text-foreground">Quick Transfer</h2>
-          <QuickTransfer />
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-foreground">Quick Transfer</h2>
+            <AddContactModal 
+              onAddContact={handleAddContact}
+              trigger={
+                <Button variant="outline" size="sm">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Contact
+                </Button>
+              }
+            />
+          </div>
+          <QuickTransfer contacts={contacts} />
         </section>
 
         {/* Recent Transactions */}
@@ -75,10 +115,10 @@ function HomePage() {
         <section>
           <div className="mb-3 flex items-center justify-between">
             <h2 className="text-lg font-semibold text-foreground">Recurring Payments</h2>
-            {/* TODO: Update this link if /recurring route is created */}
-            <Link to="/recurring" className="text-sm text-primary hover:underline">
+            {/* TODO: Create /recurring route and update this link */}
+            <Button variant="ghost" size="sm" className="text-sm text-primary hover:underline p-0 h-auto">
               Manage
-            </Link>
+            </Button>
           </div>
           <RecurringPayments />
         </section>
