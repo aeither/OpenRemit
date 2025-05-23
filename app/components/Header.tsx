@@ -1,8 +1,7 @@
 import { useTRPC } from '@/trpc/react';
 import { useMutation } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
-import { useEffect, useState } from 'react';
-import { toast } from 'sonner';
+import { useEffect } from 'react';
 import { ConnectButton, useActiveAccount } from 'thirdweb/react';
 import { mantle, thirdwebClient } from '../lib/thirdweb';
 
@@ -12,54 +11,25 @@ export function Header() {
   const isConnected = !!account;
 
   const trpc = useTRPC();
-  const [feedback, setFeedback] = useState('');
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  // Existing user creation mutation
-  const createUserMutation = useMutation(
-    trpc.user.createUser.mutationOptions({
-      onError: (error: any) => {
-        if (error.data?.code !== 'CONFLICT') {
-          console.error('Failed to create user:', error);
-        }
-      }
-    })
-  );
-
-  // Feedback mutation - Updated to use notification router with simpler response
-  const feedbackMutation = useMutation(
-    trpc.notification.notifyFeedback.mutationOptions({ 
-      onSuccess: (_data: { success: boolean }) => { // Type updated to match router response
-        setIsDialogOpen(false);
-        setFeedback('');
-        // Simpler success message
-        toast.success(`Thank you for your feedback!`); 
+  // Updated to use upsertUser instead of createUser
+  const upsertUserMutation = useMutation(
+    trpc.user.upsertUser.mutationOptions({
+      onSuccess: (data) => {
+        console.log('User upserted successfully:', data.user?.address);
       },
-      onError: (error: any) => { // Explicitly type error
-        console.error("Feedback submission failed:", error);
-        // Show error toast
-        toast.error(`Failed to send feedback: ${error.message}`); 
+      onError: (error: any) => {
+        console.error('Failed to upsert user:', error);
       }
     })
   );
 
   useEffect(() => {
     if (isConnected && address) {
-      // Pass the correct input object
-      createUserMutation.mutate({ userAddress: address }); 
+      // Upsert user when wallet is connected
+      upsertUserMutation.mutate({ userAddress: address }); 
     }
-  }, [isConnected, address, createUserMutation]);
-
-  const handleSubmitFeedback = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (address && feedback) {
-      feedbackMutation.mutate({
-        feedback,
-        option: 'general', // Ensure this matches backend expectations
-        userAddress: address
-      });
-    }
-  };
+  }, [isConnected, address]);
 
   return (
     <header className="fixed top-0 left-0 right-0 bg-background/90 backdrop-blur-sm z-50 border-b">
