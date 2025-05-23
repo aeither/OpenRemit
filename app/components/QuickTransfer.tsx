@@ -43,20 +43,26 @@ export function QuickTransfer({ contacts }: QuickTransferProps) {
 
   return (
     <ScrollArea className="w-full whitespace-nowrap">
-      <div className="flex space-x-4 p-1">
+      <div className="flex space-x-6 p-2">
         {recipients.map((recipient) => (
           <div
             key={recipient.id}
-            className="flex h-auto flex-col items-center cursor-pointer hover:opacity-80 transition-opacity text-center"
+            className="flex flex-col items-center cursor-pointer group transition-all duration-200 hover:scale-105"
           >
-            <div className="relative h-14 w-14 overflow-hidden rounded-full bg-muted">
-              <img 
-                src={recipient.image} // Now uses the imported image asset or contact image
-                alt={recipient.name} 
-                className="object-cover w-full h-full"
-              />
+            <div className="relative mb-3">
+              <div className="h-16 w-16 overflow-hidden rounded-full bg-gradient-to-br from-purple-100 to-indigo-100 dark:from-purple-900/30 dark:to-indigo-900/30 p-0.5 shadow-lg group-hover:shadow-xl transition-all duration-200">
+                <div className="h-full w-full overflow-hidden rounded-full bg-white dark:bg-slate-800">
+                  <img 
+                    src={recipient.image}
+                    alt={recipient.name} 
+                    className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-300"
+                  />
+                </div>
+              </div>
+              {/* Online indicator */}
+              <div className="absolute -bottom-1 -right-1 h-4 w-4 rounded-full bg-emerald-400 border-2 border-white dark:border-slate-800 shadow-sm"></div>
             </div>
-            <span className="mt-2 text-xs font-medium text-foreground">
+            <span className="text-sm font-medium text-gray-900 dark:text-white text-center max-w-[70px] truncate group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors duration-200">
               {recipient.name}
             </span>
           </div>

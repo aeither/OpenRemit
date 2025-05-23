@@ -63,84 +63,121 @@ function HomePage() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
       {/* Header is part of the __root.tsx layout and will include the main ConnectButton */}
-      {/* The header content provided in the mock (FamilyPay, Bell, Settings) 
-          would typically be part of the existing Header.tsx or a new sub-header if desired.
-          For now, this HomePage component focuses on the main content area below the global header.
-      */}
-
+      
       {/* Main Content */}
-      <main className="flex-1 p-4 pb-20 sm:pb-4"> {/* Added padding-bottom for MobileNav overlap */}
-        {/* Balance Card */}
-        <Card className="mb-6 bg-primary text-primary-foreground shadow-lg">
-          <CardContent className="p-6">
-            <div className="mb-2 text-sm font-medium">Available Balance</div>
-            {/* TODO: Replace with actual balance data from a hook or API */}
-            <div className="mb-4 text-3xl font-bold">$1,250.00</div> 
-            <div className="flex gap-2">
-              <Button size="sm" variant="secondary" className="flex-1">
-                <Plus className="mr-1 h-4 w-4" />
-                Add Money
-              </Button>
-              <SendMoneyModal 
-                contacts={contacts}
-                onSendMoney={handleSendMoney}
-                trigger={
-                  <Button size="sm" variant="secondary" className="flex-1">
-                    <CreditCard className="mr-1 h-4 w-4" />
-                    Send Money
-                  </Button>
-                }
-              />
+      <main className="px-4 pt-6 pb-24 max-w-md mx-auto space-y-6"> 
+        {/* Enhanced Balance Card */}
+        <Card className="relative overflow-hidden border-0 shadow-xl bg-gradient-to-br from-violet-600 via-purple-600 to-indigo-700">
+          {/* Gradient Overlay */}
+          <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
+          <div className="absolute -top-24 -right-24 w-48 h-48 bg-white/5 rounded-full"></div>
+          <div className="absolute -bottom-16 -left-16 w-32 h-32 bg-white/5 rounded-full"></div>
+          
+          <CardContent className="relative p-6 text-white">
+            <div className="space-y-4">
+              <div>
+                <p className="text-sm font-medium text-white/80 mb-1">Available Balance</p>
+                <h1 className="text-4xl font-bold tracking-tight">$1,250.00</h1>
+              </div>
+              
+              <div className="flex gap-3 pt-2">
+                <Button 
+                  size="sm" 
+                  className="flex-1 bg-white/15 hover:bg-white/25 text-white border-white/20 backdrop-blur-sm transition-all duration-200 font-medium"
+                  variant="outline"
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Money
+                </Button>
+                <SendMoneyModal 
+                  contacts={contacts}
+                  onSendMoney={handleSendMoney}
+                  trigger={
+                    <Button 
+                      size="sm" 
+                      className="flex-1 bg-white text-purple-600 hover:bg-white/90 font-medium transition-all duration-200 shadow-lg"
+                    >
+                      <CreditCard className="mr-2 h-4 w-4" />
+                      Send Money
+                    </Button>
+                  }
+                />
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Smart Suggestions */}
-        <section className="mb-6">
-          <h2 className="mb-3 text-lg font-semibold text-foreground">Smart Suggestions</h2>
+        {/* Enhanced Smart Suggestions */}
+        <section className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white">Smart Suggestions</h2>
+            <div className="h-1 w-8 bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full"></div>
+          </div>
           <SmartSuggestions />
         </section>
 
-        {/* Quick Transfer Section */}
-        <section className="mb-6">
-          <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-foreground">Quick Transfer</h2>
+        {/* Enhanced Quick Transfer Section */}
+        <section className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white">Quick Transfer</h2>
             <AddContactModal 
               onAddContact={handleAddContact}
               trigger={
-                <Button variant="outline" size="sm">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  className="text-purple-600 border-purple-200 hover:bg-purple-50 dark:text-purple-400 dark:border-purple-800 dark:hover:bg-purple-950/20 transition-all duration-200"
+                >
                   <Plus className="h-4 w-4 mr-2" />
                   Add Contact
                 </Button>
               }
             />
           </div>
-          <QuickTransfer contacts={contacts} />
+          <Card className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm border border-white/20 dark:border-slate-700/50 shadow-lg">
+            <CardContent className="p-4">
+              <QuickTransfer contacts={contacts} />
+            </CardContent>
+          </Card>
         </section>
 
-        {/* Recent Transactions */}
-        <section className="mb-6">
-          <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-foreground">Recent Transactions</h2>
-            <Link to="/transactions" className="text-sm text-primary hover:underline">
+        {/* Enhanced Recent Transactions */}
+        <section className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white">Recent Transactions</h2>
+            <Link 
+              to="/transactions" 
+              className="text-sm font-medium text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 transition-colors duration-200"
+            >
               View All
             </Link>
           </div>
-          <RecentTransactions />
+          <Card className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm border border-white/20 dark:border-slate-700/50 shadow-lg">
+            <CardContent className="p-0">
+              <RecentTransactions />
+            </CardContent>
+          </Card>
         </section>
 
-        {/* Recurring Payments */}
-        <section>
-          <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-foreground">Recurring Payments</h2>
-            {/* TODO: Create /recurring route and update this link */}
-            <Button variant="ghost" size="sm" className="text-sm text-primary hover:underline p-0 h-auto">
+        {/* Enhanced Recurring Payments */}
+        <section className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white">Recurring Payments</h2>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="text-sm font-medium text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 p-0 h-auto transition-colors duration-200"
+            >
               Manage
             </Button>
           </div>
-          <RecurringPayments />
+          <Card className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm border border-white/20 dark:border-slate-700/50 shadow-lg">
+            <CardContent className="p-4">
+              <RecurringPayments />
+            </CardContent>
+          </Card>
         </section>
       </main>
 
