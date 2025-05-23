@@ -1,6 +1,6 @@
 import { cn } from '@/lib/utils';
 import { Link, useLocation } from '@tanstack/react-router';
-import { Home, MessageSquare, Settings } from 'lucide-react';
+import { Home, MessageSquare, Settings, Users } from 'lucide-react'; // Added Users icon
 
 const BottomNavigation = () => {
   const location = useLocation();
@@ -8,6 +8,7 @@ const BottomNavigation = () => {
   const navItems = [
     { icon: Home, label: "Home", path: "/" },
     { icon: MessageSquare, label: "Chat", path: "/chat" },
+    { icon: Users, label: "Contacts", path: "/contacts" }, // Added Contacts item
     { icon: Settings, label: "Settings", path: "/settings" },
   ];
 

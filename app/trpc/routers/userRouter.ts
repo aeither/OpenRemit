@@ -159,4 +159,54 @@ export const userRouter = createTRPCRouter({
 
             return userContacts.map(c => ({ id: c.id, name: c.contactName, address: c.contactAddress }));
         }),
+
+    // Deletes a contact for a user
+    deleteContact: publicProcedure
+        .input(z.object({
+            userAddress: z.string().regex(/^0x[a-fA-F0-9]{40}$/, "Invalid Ethereum address"),
+            contactId: z.string().uuid("Invalid UUID format for contactId"),
+        }))
+        .mutation(async ({ input }) => {
+            const user = await db.query.users.findFirst({
+                where: eq(users.address, input.userAddress),
+                columns: { id: true }, // Only need user id
+            });
+
+            if (!user) {
+                throw new TRPCError({
+                    code: "NOT_FOUND",
+                    message: "User not found. Cannot delete contact.",
+                });
+            }
+
+            try {
+                const result = await db
+                    .delete(contacts)
+                    .where(and(eq(contacts.userId, user.id), eq(contacts.id, input.contactId)))
+                    .returning({ id: contacts.id }); // Returning id to check if something was deleted
+
+                if (result.length === 0) {
+                    throw new TRPCError({
+                        code: "NOT_FOUND",
+                        message: "Contact not found or does not belong to this user.",
+                    });
+                }
+
+                return {
+                    success: true,
+                    message: "Contact deleted successfully",
+                    deletedContactId: result[0].id,
+                };
+            } catch (error: any) {
+                // Handle known TRPCErrors separately
+                if (error instanceof TRPCError) {
+                    throw error;
+                }
+                console.error("Failed to delete contact:", error);
+                throw new TRPCError({
+                    code: "INTERNAL_SERVER_ERROR",
+                    message: "Failed to delete contact: " + error.message,
+                });
+            }
+        }),
 });
