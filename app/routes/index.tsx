@@ -10,6 +10,7 @@ import { MobileNav } from "../components/MobileNav";
 import { QuickTransfer } from "../components/QuickTransfer";
 import { RecentTransactions } from "../components/RecentTransactions";
 import { RecurringPayments } from "../components/RecurringPayments";
+import { SendMoneyModal } from "../components/SendMoneyModal";
 import { SmartSuggestions } from "../components/SmartSuggestions";
 // import { useAuth } from "../hooks/useAuth"; // Removed as not directly relevant and causing error
 
@@ -48,6 +49,19 @@ function HomePage() {
     console.log("Added new contact:", newContact);
   };
 
+  const handleSendMoney = (transaction: {
+    contact: Contact;
+    amount: string;
+    note: string;
+  }) => {
+    // TODO: Integrate with thirdweb/blockchain to actually send the transaction
+    console.log("Sending money:", transaction);
+    
+    // For now, just show a success message or add to transactions
+    // In a real app, this would trigger a blockchain transaction
+    alert(`Sending $${transaction.amount} to ${transaction.contact.name}${transaction.note ? ` with note: "${transaction.note}"` : ""}`);
+  };
+
   return (
     <div className="flex min-h-screen flex-col bg-background">
       {/* Header is part of the __root.tsx layout and will include the main ConnectButton */}
@@ -69,10 +83,16 @@ function HomePage() {
                 <Plus className="mr-1 h-4 w-4" />
                 Add Money
               </Button>
-              <Button size="sm" variant="secondary" className="flex-1">
-                <CreditCard className="mr-1 h-4 w-4" />
-                Send Money
-              </Button>
+              <SendMoneyModal 
+                contacts={contacts}
+                onSendMoney={handleSendMoney}
+                trigger={
+                  <Button size="sm" variant="secondary" className="flex-1">
+                    <CreditCard className="mr-1 h-4 w-4" />
+                    Send Money
+                  </Button>
+                }
+              />
             </div>
           </CardContent>
         </Card>
