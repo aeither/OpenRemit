@@ -6,7 +6,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { CreditCard, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { useActiveAccount } from "thirdweb/react"; // For checking if wallet is connected
+import { useActiveAccount, useActiveWalletChain, useWalletBalance } from "thirdweb/react";
 import { AddContactModal } from "../components/AddContactModal";
 import { AIAssistantButton } from "../components/AIAssistantButton";
 import { MobileNav } from "../components/MobileNav";
@@ -15,6 +15,7 @@ import { RecentTransactions } from "../components/RecentTransactions";
 import { RecurringPayments } from "../components/RecurringPayments";
 import { SendMoneyModal } from "../components/SendMoneyModal";
 import { SmartSuggestions } from "../components/SmartSuggestions";
+import { thirdwebClient } from "../lib/thirdweb";
 
 export const Route = createFileRoute("/")({
   component: HomePage,
@@ -28,7 +29,20 @@ interface Contact {
 
 function HomePage() {
   const activeAccount = useActiveAccount();
+  const activeChain = useActiveWalletChain();
   const trpc = useTRPC();
+  
+  // Fetch real wallet balance using thirdweb
+  const { 
+    data: balanceData, 
+    isLoading: isBalanceLoading, 
+    isError: isBalanceError 
+  } = useWalletBalance({
+    chain: activeChain,
+    address: activeAccount?.address,
+    client: thirdwebClient,
+    // tokenAddress: undefined, // Leave undefined for native token (ETH, MNT, etc.)
+  });
   
   // State for managing contacts (both local and database)
   const [contacts, setContacts] = useState<Contact[]>([
@@ -132,11 +146,11 @@ function HomePage() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
       {/* Header is part of the __root.tsx layout and will include the main ConnectButton */}
       
-      {/* Main Content - Updated for responsiveness */}
-      <main className="px-4 pt-6 pb-24 sm:pb-8 max-w-4xl mx-auto"> 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* Main Content - Updated for better space utilization */}
+      <main className="px-4 pt-6 pb-24 sm:pb-8 max-w-7xl mx-auto"> 
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
           {/* Left Column - Main Content */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-3 space-y-6">
             {/* Enhanced Balance Card */}
             <Card className="relative overflow-hidden border-0 shadow-xl bg-gradient-to-br from-violet-600 via-purple-600 to-indigo-700">
               {/* Gradient Overlay */}
@@ -148,13 +162,41 @@ function HomePage() {
                 <div className="space-y-4">
                   <div>
                     <p className="text-sm font-medium text-white/80 mb-1">Available Balance</p>
-                    <h1 className="text-4xl font-bold tracking-tight">$1,250.00</h1>
+                    {/* Real balance display with loading and error states */}
+                    {!activeAccount ? (
+                      <h1 className="text-4xl font-bold tracking-tight">Connect Wallet</h1>
+                    ) : isBalanceLoading ? (
+                      <div className="flex items-center gap-3">
+                        <h1 className="text-4xl font-bold tracking-tight">Loading...</h1>
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+                      </div>
+                    ) : isBalanceError ? (
+                      <h1 className="text-4xl font-bold tracking-tight text-red-200">Error loading balance</h1>
+                    ) : balanceData ? (
+                      <div className="flex items-baseline gap-2">
+                        <h1 className="text-4xl font-bold tracking-tight">
+                          {Number(balanceData.displayValue).toFixed(4)}
+                        </h1>
+                        <span className="text-xl font-semibold text-white/90">
+                          {balanceData.symbol}
+                        </span>
+                      </div>
+                    ) : (
+                      <h1 className="text-4xl font-bold tracking-tight">0.0000</h1>
+                    )}
+                    
+                    {/* Chain indicator */}
+                    {activeAccount && activeChain && (
+                      <p className="text-xs text-white/60 mt-1">
+                        on {activeChain.name || `Chain ${activeChain.id}`}
+                      </p>
+                    )}
                   </div>
                   
                   <div className="flex flex-col sm:flex-row gap-3 pt-2">
                     <Button 
                       size="sm" 
-                      className="flex-1 bg-white/15 hover:bg-white/25 text-white border-white/20 backdrop-blur-sm transition-all duration-200 font-medium"
+                      className="flex-1 h-11 bg-white/15 hover:bg-white/25 text-white border-white/20 backdrop-blur-sm transition-all duration-200 font-medium touch-manipulation"
                       variant="outline"
                     >
                       <Plus className="mr-2 h-4 w-4" />
@@ -166,7 +208,7 @@ function HomePage() {
                       trigger={
                         <Button 
                           size="sm" 
-                          className="flex-1 bg-white text-purple-600 hover:bg-white/90 font-medium transition-all duration-200 shadow-lg"
+                          className="flex-1 h-11 bg-white text-purple-600 hover:bg-white/90 font-medium transition-all duration-200 shadow-lg touch-manipulation"
                         >
                           <CreditCard className="mr-2 h-4 w-4" />
                           Send Money
@@ -187,7 +229,26 @@ function HomePage() {
               <SmartSuggestions />
             </section>
 
-            {/* Enhanced Recent Transactions */}
+            {/* Enhanced Recurring Payments - Moved from sidebar */}
+            <section className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Recurring Payments</h2>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="text-sm font-medium text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 p-0 h-auto transition-colors duration-200"
+                >
+                  Manage
+                </Button>
+              </div>
+              <Card className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm border border-white/20 dark:border-slate-700/50 shadow-lg">
+                <CardContent className="p-4">
+                  <RecurringPayments />
+                </CardContent>
+              </Card>
+            </section>
+
+            {/* Enhanced Recent Transactions - Mobile Only */}
             <section className="space-y-4 lg:hidden">
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-bold text-gray-900 dark:text-white">Recent Transactions</h2>
@@ -207,7 +268,7 @@ function HomePage() {
           </div>
 
           {/* Right Column - Sidebar */}
-          <div className="space-y-6">
+          <div className="lg:col-span-2 space-y-6">
             {/* Enhanced Quick Transfer Section */}
             <section className="space-y-4">
               <div className="flex items-center justify-between">
@@ -247,25 +308,6 @@ function HomePage() {
               <Card className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm border border-white/20 dark:border-slate-700/50 shadow-lg">
                 <CardContent className="p-0">
                   <RecentTransactions />
-                </CardContent>
-              </Card>
-            </section>
-
-            {/* Enhanced Recurring Payments */}
-            <section className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Recurring Payments</h2>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="text-sm font-medium text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 p-0 h-auto transition-colors duration-200"
-                >
-                  Manage
-                </Button>
-              </div>
-              <Card className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm border border-white/20 dark:border-slate-700/50 shadow-lg">
-                <CardContent className="p-4">
-                  <RecurringPayments />
                 </CardContent>
               </Card>
             </section>

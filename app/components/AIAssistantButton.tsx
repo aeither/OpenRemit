@@ -39,13 +39,14 @@ export function AIAssistantButton() {
       {isOpen && activeAccount && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-4 sm:items-center backdrop-blur-sm">
           {/* NebulaIntegration is now the content of the modal-like card */}
-          <div className="w-full max-w-md bg-card rounded-lg shadow-xl overflow-hidden flex flex-col h-[70vh] sm:h-[600px] max-h-[70vh] sm:max-h-[600px]">
+          <div className="w-full max-w-md bg-card rounded-lg shadow-xl overflow-hidden flex flex-col h-[70vh] sm:h-[600px] max-h-[70vh] sm:max-h-[600px] mb-16 sm:mb-0">
             <NebulaIntegration onClose={() => setIsOpen(false)} />
           </div>
         </div>
       )}
 
-      <div className="fixed bottom-10 right-4 z-40 flex flex-col items-end space-y-3 sm:bottom-12 sm:right-8">
+      {/* Fixed positioning with mobile navigation bar consideration */}
+      <div className="fixed bottom-20 right-4 z-40 flex flex-col items-end space-y-3 sm:bottom-12 sm:right-8 md:bottom-8">
         {isListening && (
           <div className="mb-2 rounded-full bg-primary p-3 text-primary-foreground shadow-lg">
             <div className="flex items-center gap-2">
@@ -63,7 +64,7 @@ export function AIAssistantButton() {
             onClick={toggleVoice}
             size="icon"
             variant="default"
-            className={`rounded-full shadow-lg h-12 w-12 ${isListening ? "bg-red-500 hover:bg-red-600" : "bg-primary hover:bg-primary/90"}`}
+            className={`rounded-full shadow-lg h-12 w-12 transition-all duration-200 ${isListening ? "bg-red-500 hover:bg-red-600" : "bg-primary hover:bg-primary/90"}`}
             aria-label="Toggle Voice Assistant"
           >
             <Mic className="h-6 w-6" />
@@ -73,7 +74,7 @@ export function AIAssistantButton() {
             onClick={toggleChat} 
             size="icon" 
             variant="default"
-            className="rounded-full bg-primary hover:bg-primary/90 shadow-lg h-12 w-12"
+            className="rounded-full bg-primary hover:bg-primary/90 shadow-lg h-12 w-12 transition-all duration-200"
             aria-label="Toggle AI Assistant Chat"
           >
             <Bot className="h-6 w-6" />
