@@ -3,13 +3,15 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogOverlay,
+  DialogPortal,
+  DialogTitle,
+  DialogTrigger
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -76,12 +78,11 @@ export function AddContactModal({ onAddContact, trigger }: AddContactModalProps)
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[480px] bg-gradient-to-br from-white to-gray-50/50 dark:from-slate-900 dark:to-slate-800/50 border-0 shadow-2xl">
+      <DialogPortal>
+        <DialogOverlay className="backdrop-blur-md bg-black/10" />
+        <DialogContent className="sm:max-w-[480px] bg-white/95 dark:bg-slate-900/95 border border-gray-200/20 dark:border-gray-700/20 shadow-2xl backdrop-blur-sm">
         {/* Header with gradient */}
         <DialogHeader className="text-center space-y-3 pb-2">
-          <div className="mx-auto w-16 h-16 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-full flex items-center justify-center shadow-lg">
-            <UserPlus className="h-8 w-8 text-white" />
-          </div>
           <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
             Add New Contact
           </DialogTitle>
@@ -183,7 +184,8 @@ export function AddContactModal({ onAddContact, trigger }: AddContactModalProps)
             </Button>
           </DialogFooter>
         </form>
-      </DialogContent>
+        </DialogContent>
+      </DialogPortal>
     </Dialog>
   );
 } 
