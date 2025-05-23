@@ -1,7 +1,7 @@
 import { db } from "@/db/drizzle";
-import { contacts, users } from "@/db/schema";
+import { contacts, transactions, users } from "@/db/schema";
 import { TRPCError } from "@trpc/server";
-import { and, eq } from "drizzle-orm"; // Import eq and and for querying
+import { and, desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "../init";
 
@@ -158,5 +158,96 @@ export const userRouter = createTRPCRouter({
             });
 
             return userContacts.map(c => ({ id: c.id, name: c.contactName, address: c.contactAddress }));
+        }),
+
+    // Creates a new transaction
+    createTransaction: publicProcedure
+        .input(z.object({
+            userAddress: z.string().regex(/^0x[a-fA-F0-9]{40}$/, "Invalid Ethereum address"),
+            type: z.enum(["sent", "received"]),
+            contactName: z.string().min(1),
+            contactAddress: z.string().regex(/^0x[a-fA-F0-9]{40}$/, "Invalid Ethereum address"),
+            contactImage: z.string().optional(),
+            amount: z.string().min(1, "Amount is required"),
+            note: z.string().optional(),
+            status: z.enum(["pending", "completed", "failed"]).default("completed"),
+            txHash: z.string().optional(),
+        }))
+        .mutation(async ({ input }) => {
+            const user = await db.query.users.findFirst({
+                where: eq(users.address, input.userAddress),
+            });
+
+            if (!user) {
+                throw new TRPCError({
+                    code: "NOT_FOUND",
+                    message: "User not found. Cannot create transaction.",
+                });
+            }
+
+            try {
+                const result = await db
+                    .insert(transactions)
+                    .values({
+                        userId: user.id,
+                        type: input.type,
+                        contactName: input.contactName,
+                        contactAddress: input.contactAddress,
+                        contactImage: input.contactImage,
+                        amount: input.amount,
+                        note: input.note,
+                        status: input.status,
+                        txHash: input.txHash,
+                    })
+                    .returning();
+
+                return {
+                    success: true,
+                    message: "Transaction created successfully",
+                    transaction: result[0],
+                };
+            } catch (error: any) {
+                console.error("Failed to create transaction:", error);
+                throw new TRPCError({
+                    code: "INTERNAL_SERVER_ERROR",
+                    message: "Failed to create transaction: " + error.message,
+                });
+            }
+        }),
+
+    // Lists recent transactions for a user
+    listTransactions: publicProcedure
+        .input(z.object({
+            userAddress: z.string().regex(/^0x[a-fA-F0-9]{40}$/, "Invalid Ethereum address"),
+            limit: z.number().min(1).max(100).default(20),
+        }))
+        .query(async ({ input }) => {
+            const user = await db.query.users.findFirst({
+                where: eq(users.address, input.userAddress),
+                columns: { id: true },
+            });
+
+            if (!user) {
+                return []; // Return empty array if user not found
+            }
+
+            const userTransactions = await db.query.transactions.findMany({
+                where: eq(transactions.userId, user.id),
+                orderBy: desc(transactions.createdAt),
+                limit: input.limit,
+            });
+
+            return userTransactions.map(tx => ({
+                id: tx.id,
+                type: tx.type,
+                contactName: tx.contactName,
+                contactAddress: tx.contactAddress,
+                contactImage: tx.contactImage,
+                amount: tx.amount,
+                note: tx.note,
+                status: tx.status,
+                txHash: tx.txHash,
+                createdAt: tx.createdAt,
+            }));
         }),
 });

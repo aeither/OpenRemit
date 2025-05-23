@@ -4,21 +4,25 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
+import { useTRPC } from "@/trpc/react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ArrowRight, Check, ChevronsUpDown, DollarSign, Send, Zap } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
+import { useActiveAccount } from "thirdweb/react";
 
 interface Contact {
   name: string;
@@ -42,6 +46,24 @@ export function SendMoneyModal({ contacts, trigger, onSendMoney }: SendMoneyModa
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [amount, setAmount] = useState("");
   const [note, setNote] = useState("");
+  
+  const activeAccount = useActiveAccount();
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
+  
+  // TRPC mutation for creating transactions
+  const createTransactionMutation = useMutation(
+    trpc.user.createTransaction.mutationOptions({
+      onSuccess: (data) => {
+        toast.success("Transaction recorded successfully! 💰");
+        // Invalidate and refetch transactions to refresh the recent transactions list
+        queryClient.invalidateQueries({ queryKey: ['user', 'listTransactions'] });
+      },
+      onError: (error: any) => {
+        toast.error(`Failed to record transaction: ${error.message}`);
+      }
+    })
+  );
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,6 +77,20 @@ export function SendMoneyModal({ contacts, trigger, onSendMoney }: SendMoneyModa
       amount: amount.trim(),
       note: note.trim(),
     };
+
+    // Save transaction to database if wallet is connected
+    if (activeAccount?.address) {
+      createTransactionMutation.mutate({
+        userAddress: activeAccount.address,
+        type: "sent",
+        contactName: selectedContact.name,
+        contactAddress: selectedContact.address,
+        contactImage: selectedContact.image,
+        amount: amount.trim(),
+        note: note.trim() || undefined,
+        status: "completed",
+      });
+    }
 
     onSendMoney?.(transaction);
 
@@ -160,14 +196,21 @@ export function SendMoneyModal({ contacts, trigger, onSendMoney }: SendMoneyModa
                       <CommandGroup>
                         {contacts.map((contact, index) => (
                           <CommandItem
-                            key={index}
+                            key={`${contact.address}-${index}`}
                             value={contact.name}
-                            onSelect={() => {
-                              setSelectedContact(contact);
+                            onSelect={(currentValue) => {
+                              const selectedContactItem = contacts.find(c => c.name.toLowerCase() === currentValue.toLowerCase());
+                              setSelectedContact(selectedContactItem || null);
                               setContactSearchOpen(false);
                             }}
                             className="p-3 cursor-pointer"
                           >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                selectedContact?.address === contact.address ? "opacity-100" : "opacity-0"
+                              )}
+                            />
                             <div className="flex items-center gap-3 w-full">
                               <Avatar className="h-8 w-8">
                                 <AvatarImage src={contact.image} alt={contact.name} />
@@ -181,12 +224,6 @@ export function SendMoneyModal({ contacts, trigger, onSendMoney }: SendMoneyModa
                                   {contact.address.slice(0, 8)}...{contact.address.slice(-6)}
                                 </div>
                               </div>
-                              <Check
-                                className={cn(
-                                  "ml-auto h-4 w-4",
-                                  selectedContact?.address === contact.address ? "opacity-100" : "opacity-0"
-                                )}
-                              />
                             </div>
                           </CommandItem>
                         ))}

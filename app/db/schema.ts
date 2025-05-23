@@ -42,16 +42,35 @@ export const contacts = pgTable("contacts", {
   };
 });
 
+// Define the transactions table
+export const transactions = pgTable("transactions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  type: text("type").notNull(), // "sent" or "received"
+  contactName: text("contact_name").notNull(),
+  contactAddress: text("contact_address").notNull(),
+  contactImage: text("contact_image"), // Optional avatar URL
+  amount: text("amount").notNull(), // Store as string to avoid precision issues
+  note: text("note"), // Optional transaction note
+  status: text("status").default("completed").notNull(), // "pending", "completed", "failed"
+  txHash: text("tx_hash"), // Blockchain transaction hash
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 
 // Export types for TypeScript inference
 export type User = typeof users.$inferSelect;
 export type Scheduler = typeof schedulers.$inferSelect;
 export type Contact = typeof contacts.$inferSelect;
+export type Transaction = typeof transactions.$inferSelect;
 
 // Relations for users table
 export const usersRelations = relations(users, ({ many }) => ({
   schedulers: many(schedulers),
   contacts: many(contacts),
+  transactions: many(transactions),
 }));
 
 // Relations for schedulers table
@@ -66,6 +85,14 @@ export const schedulersRelations = relations(schedulers, ({ one }) => ({
 export const contactsRelations = relations(contacts, ({ one }) => ({
   user: one(users, {
     fields: [contacts.userId],
+    references: [users.id],
+  }),
+}));
+
+// Relations for transactions table
+export const transactionsRelations = relations(transactions, ({ one }) => ({
+  user: one(users, {
+    fields: [transactions.userId],
     references: [users.id],
   }),
 }));

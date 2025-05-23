@@ -7,6 +7,7 @@ import { X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { toast } from "sonner";
 import type { PreparedTransaction } from "thirdweb";
 import { Nebula } from "thirdweb/ai";
 import {
@@ -128,6 +129,13 @@ export function NebulaIntegration({ onClose }: NebulaIntegrationProps) {
     try {
       const receipt = await sendTransaction(tx);
       console.log("Transaction successful:", receipt);
+      
+      // Show success toast
+      toast.success("Transaction Successful! 🎉", {
+        description: `Transaction hash: ${receipt.transactionHash.substring(0, 10)}...`,
+        duration: 5000,
+      });
+      
       setChatMessages(prevMessages => prevMessages.map((msg, idx) => 
         idx === messageIndex ? { ...msg, content: `${msg.content} (TX executed: ${receipt.transactionHash.substring(0,10)}...)`, txHash: receipt.transactionHash, transactions: undefined } : msg
       ));
@@ -135,6 +143,13 @@ export function NebulaIntegration({ onClose }: NebulaIntegrationProps) {
       console.error("Error sending transaction:", err);
       const txError = err instanceof Error ? err.message : "Transaction failed.";
       setError(txError);
+      
+      // Show error toast
+      toast.error("Transaction Failed", {
+        description: txError,
+        duration: 5000,
+      });
+      
        setChatMessages(prevMessages => prevMessages.map((msg, idx) => 
         idx === messageIndex ? { ...msg, content: `${msg.content} (TX failed: ${txError})` } : msg
       ));
