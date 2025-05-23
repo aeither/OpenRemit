@@ -26,7 +26,7 @@
   },
   "dependencies": {
     "@ai-sdk/google": "^1.2.10",
-    "@ai-sdk/groq": "^1.2.8",
+    "@ai-sdk/groq": "^1.2.9",
     "@ai-sdk/react": "^1.2.8",
     "@assistant-ui/react": "^0.8.6",
     "@assistant-ui/react-ai-sdk": "^0.8.0",
@@ -70,7 +70,7 @@
     "@trpc/server": "npm:@trpc/server",
     "@trpc/tanstack-react-query": "npm:@trpc/tanstack-react-query",
     "@types/uuid": "^10.0.0",
-    "ai": "^4.3.4",
+    "ai": "^4.3.16",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",

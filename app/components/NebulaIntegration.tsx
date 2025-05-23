@@ -30,7 +30,7 @@ interface NebulaIntegrationProps {
 export function NebulaIntegration({ onClose }: NebulaIntegrationProps) {
   const connectedAccount = useActiveAccount();
   const activeChain = useActiveWalletChain();
-  const { mutateAsync: sendTransaction, isPending: isTxPending } = useSendTransaction();
+  const { mutateAsync: sendTransaction, isPending: isTxPending, isSuccess: isTxSuccess  } = useSendTransaction();
   const trpc = useTRPC(); // Get tRPC client instance via hook
 
   // tRPC mutation for parsing intent - Corrected usage
@@ -71,41 +71,27 @@ export function NebulaIntegration({ onClose }: NebulaIntegrationProps) {
     setError(null);
 
     try {
-      // Step 1: Parse user intent and potentially resolve contact name
-      // const parsedResult = await parseIntentMutation.mutateAsync({
-      //   userAddress: connectedAccount.address,
-      //   userMessage: currentMessageContent,
-      // });
+      // Step 1: Parse user intent to resolve contact names
+      const parsedResult = await parseIntentMutation.mutateAsync({
+        userAddress: connectedAccount.address,
+        userMessage: currentMessageContent,
+      });
 
-      // let messageForNebula = currentMessageContent;
-      // let preNebulaError: string | null = null;
+      // If contact not found, show error and stop
+      if (!parsedResult.success && parsedResult.error) {
+        setChatMessages((prev) => [
+          ...prev,
+          { role: "assistant", content: parsedResult.error },
+        ]);
+        setIsLoading(false);
+        return;
+      }
 
-      // if (parsedResult.success) {
-      //   messageForNebula = parsedResult.messageForNebula;
-      //   if (parsedResult.parsedIntent?.isTransaction && parsedResult.contactFound === false && parsedResult.error) {
-      //     // Contact not found, display this error as an assistant message and stop
-      //     preNebulaError = parsedResult.error;
-      //   }
-      // } else if (parsedResult.error) {
-      //   // Some other parsing error or explicit "contact not found" error from AI
-      //   preNebulaError = parsedResult.error;
-      // }
-      // // If there was an error during parsing (e.g. contact not found), show it and stop
-      // if (preNebulaError) {
-      //   setChatMessages((prev) => [
-      //     ...prev,
-      //     { role: "assistant", content: `Error: ${preNebulaError}` },
-      //   ]);
-      //   setIsLoading(false);
-      //   return;
-      // }
-
-      // Step 2: Send to Nebula.chat with potentially modified message
+      // Step 2: Send to Nebula.chat with the modified message
       const nebulaResponse = await Nebula.chat({
         client: thirdwebClient,
         account: connectedAccount,
-        message: newUserMessage.content, // Use the (potentially modified) message
-        // message: messageForNebula, // Use the (potentially modified) message
+        message: parsedResult.messageForNebula, // Use the message with resolved addresses
         contextFilter: {
           chains: [activeChain],
           walletAddresses: [connectedAccount.address],

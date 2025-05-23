@@ -50,7 +50,7 @@ function HomePage() {
     {
       name: "Mom",
       address: "0x1234567890123456789012345678901234567890",
-      image: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face"
+      image: "https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=150&h=150&fit=crop&crop=face"
     },
     {
       name: "Dad",
@@ -102,7 +102,7 @@ function HomePage() {
         {
           name: "Mom",
           address: "0x1234567890123456789012345678901234567890",
-          image: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face"
+          image: "https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=150&h=150&fit=crop&crop=face"
         },
         {
           name: "Dad",
