@@ -4,6 +4,10 @@
 
 **Brief description:** OpenRemit takes the headache out of digital payments. Imagine effortlessly sending money to your kids or family members just by talking or typing, like chatting with a helpful assistant. It’s designed for busy parents who want a secure and super-simple way to handle digital funds, even if you're new to web3.
 
+# DEMO
+
+https://openremit.netlify.app/
+
 ## Overview
 
 Managing digital money for your family can feel complicated. OpenRemit changes that by introducing a friendly AI assistant that understands your everyday language. Want to send allowance to your daughter, Sarah, or pay for your son Alex's online course? Just tell OpenRemit, for example, "send 10 MNT to Sarah."
