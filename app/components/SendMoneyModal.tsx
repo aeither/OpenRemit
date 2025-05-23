@@ -2,7 +2,6 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import {
   Dialog,
   DialogContent,
@@ -14,12 +13,17 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { cn } from "@/lib/utils";
 import { useTRPC } from "@/trpc/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { ArrowRight, Check, ChevronsUpDown, DollarSign, Send, Zap } from "lucide-react";
+import { ArrowRight, Check, DollarSign, Send, Zap } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useActiveAccount } from "thirdweb/react";
@@ -42,8 +46,7 @@ interface SendMoneyModalProps {
 
 export function SendMoneyModal({ contacts, trigger, onSendMoney }: SendMoneyModalProps) {
   const [open, setOpen] = useState(false);
-  const [contactSearchOpen, setContactSearchOpen] = useState(false);
-  const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
+  const [selectedContactValue, setSelectedContactValue] = useState("");
   const [amount, setAmount] = useState("");
   const [note, setNote] = useState("");
   
@@ -95,7 +98,7 @@ export function SendMoneyModal({ contacts, trigger, onSendMoney }: SendMoneyModa
     onSendMoney?.(transaction);
 
     // Reset form and close modal
-    setSelectedContact(null);
+    setSelectedContactValue("");
     setAmount("");
     setNote("");
     setOpen(false);
@@ -109,6 +112,11 @@ export function SendMoneyModal({ contacts, trigger, onSendMoney }: SendMoneyModa
       .toUpperCase()
       .slice(0, 2);
   };
+
+  // Get the selected contact object from the value
+  const selectedContact = selectedContactValue 
+    ? contacts.find((contact) => contact.name === selectedContactValue) 
+    : null;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -162,76 +170,43 @@ export function SendMoneyModal({ contacts, trigger, onSendMoney }: SendMoneyModa
               <Label className="text-sm font-semibold text-gray-700 dark:text-gray-300">
                 Send To *
               </Label>
-              <Popover open={contactSearchOpen} onOpenChange={setContactSearchOpen}>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    role="combobox"
-                    aria-expanded={contactSearchOpen}
-                    className="w-full h-12 justify-between border-gray-200 dark:border-gray-700 hover:border-emerald-300 dark:hover:border-emerald-700 transition-all duration-200"
-                  >
-                    {selectedContact ? (
+              <Select value={selectedContactValue} onValueChange={setSelectedContactValue}>
+                <SelectTrigger className="w-full h-12 border-gray-200 dark:border-gray-700 hover:border-emerald-300 dark:hover:border-emerald-700 transition-all duration-200">
+                  {selectedContact ? (
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-6 w-6">
+                        <AvatarImage src={selectedContact.image} alt={selectedContact.name} />
+                        <AvatarFallback className="text-xs font-medium">
+                          {getInitials(selectedContact.name)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <span className="font-medium">{selectedContact.name}</span>
+                    </div>
+                  ) : (
+                    <SelectValue placeholder="Select a contact..." />
+                  )}
+                </SelectTrigger>
+                <SelectContent>
+                  {contacts.map((contact, index) => (
+                    <SelectItem key={`${contact.address}-${index}`} value={contact.name}>
                       <div className="flex items-center gap-3">
-                        <Avatar className="h-6 w-6">
-                          <AvatarImage src={selectedContact.image} alt={selectedContact.name} />
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage src={contact.image} alt={contact.name} />
                           <AvatarFallback className="text-xs font-medium">
-                            {getInitials(selectedContact.name)}
+                            {getInitials(contact.name)}
                           </AvatarFallback>
                         </Avatar>
-                        <span className="font-medium">{selectedContact.name}</span>
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium text-gray-900 dark:text-white">{contact.name}</div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400 font-mono">
+                            {contact.address.slice(0, 8)}...{contact.address.slice(-6)}
+                          </div>
+                        </div>
                       </div>
-                    ) : (
-                      <span className="text-gray-500">Select a contact...</span>
-                    )}
-                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-full p-0" align="start">
-                  <Command>
-                    <CommandInput placeholder="Search contacts..." className="h-12" />
-                    <CommandList>
-                      <CommandEmpty className="py-6 text-center text-gray-500">
-                        No contacts found.
-                      </CommandEmpty>
-                      <CommandGroup>
-                        {contacts.map((contact, index) => (
-                          <CommandItem
-                            key={`${contact.address}-${index}`}
-                            value={contact.name}
-                            onSelect={(currentValue) => {
-                              const selectedContactItem = contacts.find(c => c.name.toLowerCase() === currentValue.toLowerCase());
-                              setSelectedContact(selectedContactItem || null);
-                              setContactSearchOpen(false);
-                            }}
-                            className="p-3 cursor-pointer"
-                          >
-                            <Check
-                              className={cn(
-                                "mr-2 h-4 w-4",
-                                selectedContact?.address === contact.address ? "opacity-100" : "opacity-0"
-                              )}
-                            />
-                            <div className="flex items-center gap-3 w-full">
-                              <Avatar className="h-8 w-8">
-                                <AvatarImage src={contact.image} alt={contact.name} />
-                                <AvatarFallback className="text-xs font-medium">
-                                  {getInitials(contact.name)}
-                                </AvatarFallback>
-                              </Avatar>
-                              <div className="flex-1 min-w-0">
-                                <div className="font-medium text-gray-900 dark:text-white">{contact.name}</div>
-                                <div className="text-xs text-gray-500 dark:text-gray-400 font-mono">
-                                  {contact.address.slice(0, 8)}...{contact.address.slice(-6)}
-                                </div>
-                              </div>
-                            </div>
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Amount Field */}

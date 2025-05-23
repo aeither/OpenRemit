@@ -17,8 +17,11 @@ Here’s how OpenRemit makes your life easier:
 *   **Simple Wallet Connection:** Securely link your digital wallet in a few clicks.
 *   **AI Chat & Voice Assistant:** Our smart assistant (powered by Thirdweb Nebula AI) is ready for your typed or voice commands. No more confusing addresses!
 *   **Clear Balance View:** Always know how much digital money you have available.
-*   **Quick Family Transfers:** Easily send funds to your saved family contacts.
-*   **Transaction History:** Keep track of all your family payments in one place.
+*   **Quick Family Transfers:** Easily send funds to your saved family contacts with an intuitive contact selection interface.
+*   **Real-Time Transaction History:** All your family payments are automatically stored and displayed with smart date formatting ("Just now", "2 hours ago", etc.).
+*   **Instant Feedback:** Get immediate success or error notifications for every transaction.
+*   **Smart Contact Management:** Save family members once, then simply select them from an easy dropdown when sending money.
+*   **Database-Backed Storage:** All transactions are securely stored with full details including amounts, notes, and recipient information.
 *   *(Coming Soon) Recurring Payments:* Set up regular allowances or payments effortlessly.
 *   *(Coming Soon) Smart Suggestions:* Get helpful reminders for upcoming family expenses.
 *   *(Coming Soon) Easy On/Off Ramps:* Seamlessly move money between your bank and digital wallet.
@@ -48,15 +51,21 @@ For parents, managing digital money—whether it's for allowances, gifts, or hel
 *   **Web3 Integration:**
     *   Thirdweb SDK (Wallet Connection, Nebula AI client-side integration, smart contracts interaction)
 *   **Backend (API Layer):**
-    *   tRPC
+    *   tRPC (with transaction management and user procedures)
 *   **Database:**
-    *   PostgreSQL (assumed, based on Drizzle `pgTable` usage)
+    *   PostgreSQL (for persistent data storage)
     *   Drizzle ORM (for database access and schema management)
+    *   Full transaction history with user relations
+    *   Contact management with address mapping
 *   **AI & NLP:**
     *   Vercel AI SDK
     *   Groq (as the LLM provider for intent parsing and other AI tasks)
     *   Thirdweb Nebula AI (for core transaction understanding and execution proposal)
     *   Speech-to-Text and Text-to-Speech APIs (for voice command support)
+*   **UI/UX:**
+    *   Sonner (for toast notifications)
+    *   Skeleton loading states
+    *   Responsive design with dark mode support
 *   **Package Manager:** pnpm
 
 ## Architecture
@@ -73,12 +82,15 @@ OpenRemit follows a modern full-stack TypeScript architecture:
 
 2.  **API Layer (`app/trpc/` directory):**
     *   tRPC is used to create a type-safe API between the frontend and backend logic.
-    *   `userRouter.ts`: Manages user creation/updates and CRUD operations for user-specific contacts (e.g., family member name-to-address mappings).
+    *   `userRouter.ts`: Manages user creation/updates, CRUD operations for user-specific contacts (e.g., family member name-to-address mappings), transaction creation, and transaction history retrieval with real-time cache invalidation.
     *   `aiRouter.ts`: Contains procedures for advanced AI processing. For example, `parseUserIntentForNebula` takes raw user chat input or voice commands, uses an LLM (via Vercel AI SDK and Groq) to understand the intent and extract entities. If a contact name is mentioned (e.g., "send to Dad"), it calls the `userRouter` to resolve "Dad" to a blockchain address before the information is passed to the client-side Nebula AI.
 
 3.  **Database (`app/db/` directory):**
     *   Drizzle ORM is used to define the schema (`schema.ts`) and interact with the PostgreSQL database.
-    *   Key tables include `users` (stores user addresses and IDs) and `contacts` (stores user-specific name-address mappings).
+    *   Key tables include:
+        *   `users` (stores user addresses and IDs)
+        *   `contacts` (stores user-specific name-address mappings)
+        *   `transactions` (stores complete transaction history with amounts, notes, status, timestamps, and user relations)
 
 4.  **External Services:**
     *   **Thirdweb:** Provides client IDs, wallet connection UI, and the Nebula AI service for understanding and preparing blockchain transactions from natural language.
@@ -87,15 +99,14 @@ OpenRemit follows a modern full-stack TypeScript architecture:
 
 **Flow Example (Sending money to a family member):**
 
-1.  Mom wants to send some digital pocket money. She opens OpenRemit and tells the AI assistant, "Send Alex 10 MNT for his game."
-2.  The app securely sends this request (and Mom's user identifier) to OpenRemit's `aiRouter`.
-3.  The `aiRouter` (using Groq) understands: Mom wants to send 10 MNT to someone named "Alex".
-4.  The `aiRouter` then asks the `userRouter`: "Who is 'Alex' in Mom's contact list?"
-5.  The `userRouter` checks the database and finds Alex's saved digital address (e.g., `0xXYZ...`).
-6.  The `aiRouter` tells the app: "Okay, you want to send 10 MNT to `0xXYZ...` (Alex)."
-7.  The app now clearly instructs Nebula AI: "Prepare a transaction to send 10 MNT to `0xXYZ...`."
-8.  Nebula AI prepares the transaction details.
-9.  Mom sees a simple confirmation on her screen and approves the payment with a secure click in her connected wallet.
+1.  Mom wants to send some digital pocket money. She opens OpenRemit and either tells the AI assistant "Send Alex 10 MNT for his game" or uses the Send Money modal to select Alex from her contacts.
+2.  **AI Route**: The app securely sends this request (and Mom's user identifier) to OpenRemit's `aiRouter`, which uses Groq to understand the intent and resolve "Alex" to his blockchain address via the `userRouter`.
+3.  **Manual Route**: Mom selects Alex from an easy dropdown in the Send Money modal, enters the amount and optional note.
+4.  Either way, the transaction details are prepared and Mom sees a clear confirmation showing Alex's name, amount ($10), and any note.
+5.  When Mom confirms, the transaction is immediately saved to the database with all details (amount, recipient, note, timestamp, status).
+6.  Mom gets an instant success notification: "Transaction recorded successfully! 💰"
+7.  The transaction appears immediately in her transaction history with smart formatting ("Just now") and Alex's avatar.
+8.  The transaction list auto-refreshes to show the new payment alongside previous family transactions.
 
 ## Getting Started
 
